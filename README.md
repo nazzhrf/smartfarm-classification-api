@@ -1,7 +1,6 @@
 # smartfarm-classification-api
 
-An api to determine the severity level of anthracnose disease in chilli. The chilli is placed in a closed chamber and deployed in "cPanel Cloud Premium" services provided by Niagahoster.
-This project is a part of STEI ITB's capstone design. This repo is an implementation of a **Cloud-Based Backend System for Chili's Antrachnose Disease Screening Chamber**. This repository is still in development. Credit to TA242501022 team, Najmi Azzahra Feryputri.
+This project is a part of STEI ITB's capstone design. This repo is an implementation of a **Cloud-Based Backend System for Chili's Antrachnose Disease Screening Chamber**. This repository deployed in "cPanel Cloud Premium" services provided by Niagahoster and is still in development. Credit to TA242501022 team, Najmi Azzahra Feryputri.
 
 ## Repo Structure 
 | Directory / Files  | Description |

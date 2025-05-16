@@ -10,10 +10,14 @@ import threading
 import mysql.connector
 from ultralytics import YOLO
 from dotenv import load_dotenv
+from flask_cors import CORS
 
 load_dotenv()
 
 app = Flask(__name__)
+
+FRONTEND_ORIGIN = "http://localhost:3000"
+CORS(app, supports_credentials=True, origins=[FRONTEND_ORIGIN, "chrome-extension://*", "moz-extension://*", "http://127.0.0.1:3000", "null"])
 
 # Definisi path berbasis direktori root skrip ini
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))

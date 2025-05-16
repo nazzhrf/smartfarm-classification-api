@@ -13,6 +13,7 @@ This project is a part of STEI ITB's capstone design. This repo is an implementa
 | app.py             | Python source code. Contain all api for classifying. Postman documentation will be available soon |
 | passenger_wsgi.py  | WSGI entry to run the Python app in cPanel |
 | requirements.txt   | All the requirements needed |
+| Examples           | Directory contains code to interact with other components (Raspberry Pi and Frontend) |
 
 ## How to Use 
 ### Local Deployment

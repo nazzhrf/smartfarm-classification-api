@@ -1,0 +1,21 @@
+{
+    "classify": {
+        "per_day": [
+            "08:00",
+            "20.00"
+        ],
+        "per_week": [],
+        "per_month": [],
+        "per_year": []
+    },
+    "clean_old_dir": {
+        "per_day": [
+            "02:00"
+        ],
+        "per_week": [],
+        "per_month": [],
+        "per_year": [
+            "12-31 23:00"
+        ]
+    }
+}

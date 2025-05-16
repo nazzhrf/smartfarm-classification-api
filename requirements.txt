@@ -1,0 +1,7 @@
+flask
+pillow
+mysql-connector-python
+ultralytics
+Pillow
+torch
+python-dotenv

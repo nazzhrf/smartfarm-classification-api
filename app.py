@@ -1,4 +1,5 @@
 import os
+import base64
 import shutil
 import json
 from datetime import datetime, date, time
@@ -11,6 +12,7 @@ import mysql.connector
 from ultralytics import YOLO
 from dotenv import load_dotenv
 from flask_cors import CORS
+import mimetypes
 
 load_dotenv()
 
@@ -166,15 +168,15 @@ def classify_chili_route():
     # Jadwalkan pemindahan otomatis setelah 5 menit
     def delayed_move():
         move_segmented_images_internal()
-        print("ðŸ•” Gambar dipindahkan otomatis 5 menit setelah klasifikasi.")
+        print("ðŸ•” Gambar otomatis dipindahkan setelah klasifikasi.")
 
-    timer = threading.Timer(300, delayed_move)  # 5 menit = 300 detik
+    timer = threading.Timer(0, delayed_move)  # 0 detik
     timer.start()
 
     return jsonify({
         "classification_result": results_list,
         "message": "Klasifikasi selesai. Gambar akan dipindahkan otomatis dalam 5 menit, atau Anda bisa trigger manual.",
-        "auto_move_time": "5 minutes"
+        "auto_move_time": "0 detik"
     })
     
 def run_classify():
@@ -205,26 +207,31 @@ def get_data():
 
     cursor = db.cursor(dictionary=True)
 
-    # Ambil tanggal dan waktu terbaru jika tidak diberikan
-    if not tanggal or not waktu:
+    # Jika tidak ada tanggal, ambil tanggal dan waktu terbaru
+    if not tanggal:
         cursor.execute("""
             SELECT tanggal, waktu FROM chili_predictions_v1
             ORDER BY tanggal DESC, waktu DESC LIMIT 1
         """)
         result = cursor.fetchone()
         if result:
-            if not tanggal:
-                tanggal = result['tanggal']
-            if not waktu:
-                waktu = result['waktu']
+            tanggal = result['tanggal']
+            waktu = result['waktu']
 
+    # Bangun query dinamis berdasarkan filter yang ada
     query = """
         SELECT tanggal, waktu, image, pred_class_1, pred_class_2, pred_class_3
         FROM chili_predictions_v1
-        WHERE tanggal = %s AND waktu = %s
+        WHERE 1=1
     """
-    params = [tanggal, waktu]
+    params = []
 
+    if tanggal:
+        query += " AND tanggal = %s"
+        params.append(tanggal)
+    if waktu:
+        query += " AND waktu = %s"
+        params.append(waktu)
     if image:
         query += " AND image LIKE %s"
         params.append(f"%{image}%")
@@ -243,18 +250,89 @@ def get_data():
     cursor.execute(query, tuple(params))
     rows = cursor.fetchall()
 
-    # Convert tanggal dan waktu ke string supaya JSON bisa serializable dengan baik
+    results = []
+
     for row in rows:
+        # Format tanggal
         if isinstance(row['tanggal'], (datetime, date)):
-            row['tanggal'] = row['tanggal'].strftime('%Y-%m-%d')
-        if not isinstance(row['waktu'], str):
-            row['waktu'] = str(row['waktu'])
+            tanggal_str = row['tanggal'].strftime('%Y-%m-%d')
+        else:
+            tanggal_str = str(row['tanggal'])
+
+        # Format waktu tergantung tipe
+        waktu_raw = row['waktu']
+        if isinstance(waktu_raw, timedelta):
+            total_seconds = int(waktu_raw.total_seconds())
+            hours = total_seconds // 3600
+            minutes = (total_seconds % 3600) // 60
+            seconds = total_seconds % 60
+            waktu_str = f"{hours:02}:{minutes:02}:{seconds:02}"
+            waktu_folder = f"{hours:02}-{minutes:02}-{seconds:02}"
+        elif isinstance(waktu_raw, time):
+            waktu_str = waktu_raw.strftime("%H:%M:%S")
+            waktu_folder = waktu_raw.strftime("%H-%M-%S")
+        else:
+            waktu_str = str(waktu_raw)
+            waktu_folder = waktu_str.replace(":", "-")
+
+        # Buat nama folder dan path gambar
+        jam_menit = waktu_folder[:5]  # "HH-MM"
+        jam, menit = map(int, jam_menit.split('-')) 
+
+        prefixes = []
+        prefixes.append(f"{tanggal_str}_{jam:02}-{menit:02}")
+
+        if menit == 59:
+            jam_plus = (jam + 1) % 24
+            menit_plus = 0
+        else:
+            jam_plus = jam
+            menit_plus = menit + 1
+
+        prefixes.append(f"{tanggal_str}_{jam_plus:02}-{menit_plus:02}")
+
+        image_filename = row['image']
+
+        matching_folders = [f for f in os.listdir(STORAGE_DIR)
+                            if any(f.startswith(prefix) for prefix in prefixes)
+                            and os.path.isdir(os.path.join(STORAGE_DIR, f))]
+
+        if matching_folders:
+            selected_folder = matching_folders[0]
+            image_path = os.path.join(STORAGE_DIR, selected_folder, image_filename)
+        else:
+            image_path = None
+
+        if image_path and os.path.exists(image_path):
+            try:
+                with open(image_path, 'rb') as img_file:
+                    raw_data = img_file.read()
+                    encoded = base64.b64encode(raw_data).decode('utf-8')
+                    mime_type, _ = mimetypes.guess_type(image_path)
+                    if not mime_type:
+                        mime_type = "image/jpeg"
+                    image_data = f"data:{mime_type};base64,{encoded}"
+            except Exception as e:
+                print(f"Error encoding {image_path}: {e}")
+                image_data = None
+        else:
+            image_data = None
+
+        results.append({
+            "tanggal": tanggal_str,
+            "waktu": waktu_str,
+            "image": image_filename,
+            "image_data": image_data,
+            "pred_class_1": row['pred_class_1'],
+            "pred_class_2": row['pred_class_2'],
+            "pred_class_3": row['pred_class_3']
+        })
 
     cursor.close()
     db.close()
 
-    return jsonify(rows)
-
+    return jsonify(results)
+    
 @app.route('/search', methods=['GET'])
 def search_data():
     q = request.args.get('q', '').strip()
@@ -461,6 +539,160 @@ def check_schedule_internal():
         "triggered": list(set(triggered_tasks)),
         "time": current_time
     }
+    
+def get_all_dirs():
+    try:
+        return [d for d in os.listdir(STORAGE_DIR) if os.path.isdir(os.path.join(STORAGE_DIR, d))]
+    except FileNotFoundError:
+        return []
+
+def get_week_range(year, month, week):
+    first_day = datetime(year, month, 1)
+    first_monday = first_day + timedelta(days=(7 - first_day.weekday()) % 7) if first_day.weekday() != 0 else first_day
+    start_date = first_monday + timedelta(weeks=week - 1)
+    end_date = start_date + timedelta(days=6)
+    return start_date.date(), end_date.date()
+
+@app.route("/filter-directories", methods=["POST"])
+def filter_directories():
+    data = request.get_json() or {}
+    tahun = data.get("tahun")
+    bulan = data.get("bulan")
+    minggu = data.get("minggu")
+    tanggal = data.get("tanggal")
+
+    dirs = get_all_dirs()
+    matched_dirs = []
+
+    # --- Kondisi 1: JSON kosong, kembalikan direktori 7 hari terakhir ---
+    if not data:
+        today = datetime.today().date()
+        seven_days_ago = today - timedelta(days=6)
+        matched_dirs = [
+            d for d in dirs
+            if any((seven_days_ago + timedelta(days=i)).strftime("%Y-%m-%d") in d for i in range(7))
+        ]
+        return jsonify({
+            "info": "Menampilkan direktori untuk 7 hari terakhir",
+            "matched_directories": matched_dirs
+        })
+
+    # --- Validasi kombinasi input yang diperbolehkan ---
+    fields_provided = {k: v for k, v in {"tahun": tahun, "bulan": bulan, "minggu": minggu, "tanggal": tanggal}.items() if v is not None}
+
+    valid_comb_1 = ("tahun" in fields_provided and "bulan" in fields_provided and "minggu" not in fields_provided and "tanggal" not in fields_provided)
+    valid_comb_2 = ("tahun" in fields_provided and "bulan" in fields_provided and "minggu" in fields_provided and "tanggal" not in fields_provided)
+    valid_comb_3 = ("tanggal" in fields_provided and len(fields_provided) == 1)
+
+    if not (valid_comb_1 or valid_comb_2 or valid_comb_3):
+        return jsonify({
+            "error": "Tolong masukkan kombinasi:\n1) tahun dan bulan,\n2) tahun, bulan, dan minggu, atau\n3) tanggal"
+        }), 400
+
+    # --- Kondisi 2: hanya tanggal ---
+    if valid_comb_3:
+        try:
+            date_obj = datetime.strptime(tanggal, "%Y-%m-%d").date()
+        except ValueError:
+            return jsonify({"error": "Format tanggal tidak valid, gunakan YYYY-MM-DD"}), 400
+
+        matched_dirs = [d for d in dirs if tanggal in d]
+        return jsonify({"matched_directories": matched_dirs})
+
+    # --- Kondisi 3: tahun dan bulan (tanpa minggu) ---
+    if valid_comb_1:
+        try:
+            tahun = int(tahun)
+            bulan = int(bulan)
+            prefix = f"{tahun}-{bulan:02d}"
+            matched_dirs = [d for d in dirs if prefix in d]
+            return jsonify({"matched_directories": matched_dirs})
+        except:
+            return jsonify({"error": "Format tahun/bulan tidak valid"}), 400
+
+    # --- Kondisi 4: tahun, bulan, dan minggu ---
+    if valid_comb_2:
+        try:
+            tahun = int(tahun)
+            bulan = int(bulan)
+            minggu = int(minggu)
+            start_week, end_week = get_week_range(tahun, bulan, minggu)
+        except Exception:
+            return jsonify({"error": "Parameter tahun/bulan/minggu tidak valid"}), 400
+
+        matched_dirs = [
+            d for d in dirs
+            if any((start_week + timedelta(days=i)).strftime("%Y-%m-%d") in d for i in range(7))
+        ]
+        return jsonify({"matched_directories": matched_dirs})
+
+    # Fallback (harusnya tidak akan sampai sini karena sudah divalidasi)
+    return jsonify({
+        "error": "Tolong masukkan kombinasi:\n1) tahun dan bulan,\n2) tahun, bulan, dan minggu, atau\n3) tanggal"
+    }), 400
+    
+    
+@app.route('/get-full-image', methods=['POST'])
+def get_full_image():
+    data = request.get_json(silent=True) or {}
+    tanggal = data.get("tanggal")  # format: "YY-MM-DD"
+    waktu = data.get("waktu")      # format: "HH:MM:SS"
+
+    if not tanggal or not waktu:
+        return jsonify({"error": "Missing 'tanggal' or 'waktu'"}), 400
+
+    try:
+        target_dt = datetime.strptime(f"{tanggal} {waktu}", "%Y-%m-%d %H:%M:%S")
+    except ValueError:
+        return jsonify({"error": "Invalid date or time format"}), 400
+
+    # Buat nama folder target
+    target_folder_name = target_dt.strftime("%Y-%m-%d_%H-%M-%S")
+
+    # Buat daftar nama folder yang dalam rentang ± 1 menit
+    toleransi = [target_dt + timedelta(seconds=offset) for offset in range(0, 61)]
+    toleransi_names = [dt.strftime("%Y-%m-%d_%H-%M-%S") for dt in toleransi]
+
+    # Cek direktori yang sesuai
+    matching_folders = [
+        f for f in os.listdir(STORAGE_DIR)
+        if f in toleransi_names and os.path.isdir(os.path.join(STORAGE_DIR, f))
+    ]
+
+    if not matching_folders:
+        return jsonify({"error": "No matching directory found"}), 404
+
+    # Gunakan folder pertama yang ditemukan
+    selected_folder = matching_folders[0]
+    folder_path = os.path.join(STORAGE_DIR, selected_folder)
+
+    # Cari gambar dengan nama mengandung "full"
+    full_images = [
+        f for f in os.listdir(folder_path)
+        if "full" in f.lower() and os.path.isfile(os.path.join(folder_path, f))
+    ]
+
+    if not full_images:
+        return jsonify({"error": "No image containing 'full' found"}), 404
+
+    # Ambil gambar pertama
+    image_name = full_images[0]
+    image_path = os.path.join(folder_path, image_name)
+
+    try:
+        with open(image_path, "rb") as img_file:
+            encoded = base64.b64encode(img_file.read()).decode('utf-8')
+            mime_type, _ = mimetypes.guess_type(image_path)
+            if not mime_type:
+                mime_type = "image/jpeg"
+            image_data = f"data:{mime_type};base64,{encoded}"
+    except Exception as e:
+        return jsonify({"error": f"Failed to read image: {str(e)}"}), 500
+
+    return jsonify({
+        "image_name": image_name,
+        "image_data": image_data
+    })
         
 # Entry point for WSGI servers
 application = app

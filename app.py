@@ -43,10 +43,8 @@ def upload_image():
     file.save(save_path)
     return f'Uploaded {file.filename}', 200
 
-def move_segmented_images_internal():
-    timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+def move_segmented_images_internal(timestamp):
     dest_dir = os.path.join(STORAGE_DIR, timestamp)
-
     os.makedirs(dest_dir, exist_ok=True)
 
     moved_files = []
@@ -57,6 +55,21 @@ def move_segmented_images_internal():
         if os.path.isfile(source_path):
             shutil.move(source_path, dest_path)
             moved_files.append(filename)
+
+    # Hapus sisa isi folder TEMP tanpa menghapus foldernya sendiri
+    for leftover in os.listdir(TEMP_DIR):
+        path = os.path.join(TEMP_DIR, leftover)
+        if os.path.isfile(path):
+            os.remove(path)
+        elif os.path.isdir(path):
+            shutil.rmtree(path)
+
+    return {
+        "message": "Semua gambar berhasil dipindahkan.",
+        "jumlah_file": len(moved_files),
+        "folder_baru": dest_dir,
+        "files": moved_files
+    }
 
     # Hapus sisa isi (jika ada) tanpa menghapus folder temp itu sendiri
     for leftover in os.listdir(TEMP_DIR):
@@ -76,11 +89,10 @@ def move_segmented_images_internal():
 @app.route('/classify', methods=['GET'])
 def classify_chili_route():
     model = YOLO(MODEL_PATH)
-
     os.makedirs(RESULTS_DIR, exist_ok=True)
 
     image_files = [f for f in os.listdir(TEMP_DIR)
-    if f.lower().endswith(('.png', '.jpg', '.jpeg')) and 'full' not in f.lower()]
+                   if f.lower().endswith(('.png', '.jpg', '.jpeg')) and 'full' not in f.lower()]
     if not image_files:
         return jsonify([{"error": "Tidak ada file gambar di folder temp."}]), 404
 
@@ -110,7 +122,8 @@ def classify_chili_route():
 
     now = datetime.now()
     tanggal = now.strftime("%Y-%m-%d")
-    waktu = now.strftime("%H-%M-%S")
+    waktu = now.strftime("%H-%M-%S")  # Format untuk nama folder & file
+    waktu_db = waktu.replace("-", ":")  # Format waktu untuk database (HH:MM:SS)
 
     results_list = []
 
@@ -121,11 +134,8 @@ def classify_chili_route():
         results = model.predict(img, verbose=False)[0]
 
         names = model.model.names
-        print("Class names:", names)
         probs = results.probs.data
         top_indices = probs.argsort(descending=True)[:3]
-        print("Top indices:", top_indices)
-        print("Top probs:", probs[top_indices])
 
         pred_classes = [names[int(i)] for i in top_indices]
         confidences = [float(probs[int(i)]) for i in top_indices]
@@ -138,7 +148,7 @@ def classify_chili_route():
                 pred_class_3, conf_3
             ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
         """, (
-            tanggal, waktu.replace("-", ":"), image_file,
+            tanggal, waktu_db, image_file,
             pred_classes[0], confidences[0],
             pred_classes[1], confidences[1],
             pred_classes[2], confidences[2]
@@ -147,7 +157,7 @@ def classify_chili_route():
 
         results_list.append({
             "tanggal": tanggal,
-            "waktu": waktu.replace("-", ":"),
+            "waktu": waktu_db,
             "image": image_file,
             "top3": [
                 {"class": pred_classes[0], "confidence": round(confidences[0], 4)},
@@ -159,19 +169,17 @@ def classify_chili_route():
     cursor.close()
     db.close()
 
-    # Simpan hasil klasifikasi ke file
     output_filename = f"results_{tanggal}_{waktu}.txt"
     output_path = os.path.join(RESULTS_DIR, output_filename)
-
     with open(output_path, "w") as f:
         json.dump(results_list, f, indent=4)
 
-    # Jadwalkan pemindahan otomatis setelah 5 menit
+    # Panggil fungsi pemindahan dengan timestamp yang sama, supaya folder storage sama waktunya dengan database
     def delayed_move():
-        move_segmented_images_internal()
-        print("ðŸ•” Gambar otomatis dipindahkan setelah klasifikasi.")
+        move_segmented_images_internal(timestamp=f"{tanggal}_{waktu}")
+        print("Gambar otomatis dipindahkan setelah klasifikasi.")
 
-    timer = threading.Timer(0, delayed_move)  # 0 detik
+    timer = threading.Timer(0, delayed_move)  # 0 detik (langsung)
     timer.start()
 
     return jsonify({
@@ -179,15 +187,16 @@ def classify_chili_route():
         "message": "Klasifikasi selesai. Gambar akan segera dipindahkan otomatis. proses pemindahan berlangsung sekitar 3 menit, harap ditunggu.",
         "auto_move_time": "0 detik"
     })
+
     
 def run_classify():
     with app.test_request_context():
         return classify_chili_route()
 
-@app.route('/move', methods=['GET'])
-def move_segmented_images_route():
-    result = move_segmented_images_internal()
-    return jsonify(result)
+#@app.route('/move', methods=['GET'])
+#def move_segmented_images_route():
+#    result = move_segmented_images_internal()
+#    return jsonify(result)
 
 @app.route('/get-data', methods=['POST'])
 def get_data():

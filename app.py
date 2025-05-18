@@ -79,7 +79,8 @@ def classify_chili_route():
 
     os.makedirs(RESULTS_DIR, exist_ok=True)
 
-    image_files = [f for f in os.listdir(TEMP_DIR) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
+    image_files = [f for f in os.listdir(TEMP_DIR)
+    if f.lower().endswith(('.png', '.jpg', '.jpeg')) and 'full' not in f.lower()]
     if not image_files:
         return jsonify([{"error": "Tidak ada file gambar di folder temp."}]), 404
 
@@ -175,7 +176,7 @@ def classify_chili_route():
 
     return jsonify({
         "classification_result": results_list,
-        "message": "Klasifikasi selesai. Gambar akan dipindahkan otomatis dalam 5 menit, atau Anda bisa trigger manual.",
+        "message": "Klasifikasi selesai. Gambar akan segera dipindahkan otomatis. proses pemindahan berlangsung sekitar 3 menit, harap ditunggu.",
         "auto_move_time": "0 detik"
     })
     

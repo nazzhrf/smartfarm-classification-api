@@ -2,6 +2,7 @@ import os
 import base64
 import shutil
 import json
+import re
 from datetime import datetime, date, time
 from datetime import timedelta
 from flask import Flask, request, jsonify
@@ -13,21 +14,30 @@ from ultralytics import YOLO
 from dotenv import load_dotenv
 from flask_cors import CORS
 import mimetypes
+import requests
+import logging
 
 load_dotenv()
 
 app = Flask(__name__)
 
 FRONTEND_ORIGIN = "http://localhost:3000"
-CORS(app, supports_credentials=True, origins=[FRONTEND_ORIGIN, "chrome-extension://*", "moz-extension://*", "http://127.0.0.1:3000", "null"])
+CORS(app, supports_credentials=True, origins=[FRONTEND_ORIGIN, "chrome-extension://*", "moz-extension://*", "http://127.0.0.1:3000", "null", "https://v4.smartfarm.id"])
 
 # Definisi path berbasis direktori root skrip ini
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMP_DIR = os.path.join(ROOT_DIR, 'Temp')
 STORAGE_DIR = os.path.join(ROOT_DIR, 'Storage')
-MODEL_PATH = os.path.join(ROOT_DIR, 'Model', 'best.pt')
+MODEL_PATH = os.path.join(ROOT_DIR, 'Model', 'best26.pt')
 RESULTS_DIR = os.path.join(ROOT_DIR, 'Results')
 SCHEDULE_FILE = os.path.join(ROOT_DIR, 'Scheduler/schedule_config.json')
+LOG_PATH = os.path.join(os.path.dirname(__file__), 'debug.log')  # Simpan log di direktori yang sama
+
+logging.basicConfig(
+    filename=LOG_PATH,
+    level=logging.DEBUG,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
 
 
 @app.route('/upload-image', methods=['POST'])
@@ -42,21 +52,47 @@ def upload_image():
     save_path = os.path.join(TEMP_DIR, file.filename)
     file.save(save_path)
     return f'Uploaded {file.filename}', 200
+    
+def format_image_name_for_db(filename):
+    pattern_cropped = re.compile(r'^(left|right)_chili_(\d+)_cropped_\d{8}_\d{4}\.jpg$', re.IGNORECASE)
+    match = pattern_cropped.match(filename)
+    if match:
+        arah = match.group(1)
+        z_value = match.group(2)
+        return f"{arah}_chili_{z_value}"
+    return filename  # fallback jika format tidak cocok
 
 def move_segmented_images_internal(timestamp):
     dest_dir = os.path.join(STORAGE_DIR, timestamp)
     os.makedirs(dest_dir, exist_ok=True)
 
     moved_files = []
+    pattern_cropped = re.compile(r'^(left|right)_chili_(\d+)_cropped_\d{8}_\d{4}\.jpg$', re.IGNORECASE)
+    pattern_full = re.compile(r'^(left|right).*full.*\.jpg$', re.IGNORECASE)
+
     for filename in os.listdir(TEMP_DIR):
         source_path = os.path.join(TEMP_DIR, filename)
-        dest_path = os.path.join(dest_dir, filename)
+        new_name = filename  # default
+
+        # Format 1: left/right_chili_i_cropped_yyyyMMdd_hhmm.jpg
+        match_cropped = pattern_cropped.match(filename)
+        if match_cropped:
+            arah = match_cropped.group(1)
+            z_value = match_cropped.group(2)
+            new_name = f"{arah}_chili_{z_value}.jpg"
+
+        # Format 2: left/right_chili_detection_order_full_yyyyMMdd_hhmm.jpg
+        elif pattern_full.match(filename):
+            direction = filename.split('_')[0].lower()
+            new_name = f"{direction}_full.jpg"
+
+        dest_path = os.path.join(dest_dir, new_name)
 
         if os.path.isfile(source_path):
             shutil.move(source_path, dest_path)
-            moved_files.append(filename)
+            moved_files.append(new_name)
 
-    # Hapus sisa isi folder TEMP tanpa menghapus foldernya sendiri
+    # Bersihkan sisa file
     for leftover in os.listdir(TEMP_DIR):
         path = os.path.join(TEMP_DIR, leftover)
         if os.path.isfile(path):
@@ -71,20 +107,6 @@ def move_segmented_images_internal(timestamp):
         "files": moved_files
     }
 
-    # Hapus sisa isi (jika ada) tanpa menghapus folder temp itu sendiri
-    for leftover in os.listdir(TEMP_DIR):
-        path = os.path.join(TEMP_DIR, leftover)
-        if os.path.isfile(path):
-            os.remove(path)
-        elif os.path.isdir(path):
-            shutil.rmtree(path)
-
-    return {
-        "message": "Semua gambar berhasil dipindahkan.",
-        "jumlah_file": len(moved_files),
-        "folder_baru": dest_dir,
-        "files": moved_files
-    }
 
 @app.route('/classify', methods=['GET'])
 def classify_chili_route():
@@ -140,6 +162,9 @@ def classify_chili_route():
         pred_classes = [names[int(i)] for i in top_indices]
         confidences = [float(probs[int(i)]) for i in top_indices]
 
+        # Tambahan: ubah nama file untuk database
+        image_db_name = format_image_name_for_db(image_file)
+
         cursor.execute("""
             INSERT INTO chili_predictions_v1 (
                 tanggal, waktu, image,
@@ -148,7 +173,7 @@ def classify_chili_route():
                 pred_class_3, conf_3
             ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
         """, (
-            tanggal, waktu_db, image_file,
+            tanggal, waktu_db, image_db_name,
             pred_classes[0], confidences[0],
             pred_classes[1], confidences[1],
             pred_classes[2], confidences[2]
@@ -158,7 +183,7 @@ def classify_chili_route():
         results_list.append({
             "tanggal": tanggal,
             "waktu": waktu_db,
-            "image": image_file,
+            "image": image_db_name,
             "top3": [
                 {"class": pred_classes[0], "confidence": round(confidences[0], 4)},
                 {"class": pred_classes[1], "confidence": round(confidences[1], 4)},
@@ -184,7 +209,7 @@ def classify_chili_route():
 
     return jsonify({
         "classification_result": results_list,
-        "message": "Klasifikasi selesai. Gambar akan segera dipindahkan otomatis. proses pemindahan berlangsung sekitar 3 menit, harap ditunggu.",
+        "message": "Klasifikasi selesai. Gambar akan segera dipindahkan otomatis. proses pemindahan berlangsung sekitar 6 menit, harap ditunggu.",
         "auto_move_time": "0 detik"
     })
 
@@ -217,7 +242,6 @@ def get_data():
 
     cursor = db.cursor(dictionary=True)
 
-    # Jika tidak ada tanggal, ambil tanggal dan waktu terbaru
     if not tanggal:
         cursor.execute("""
             SELECT tanggal, waktu FROM chili_predictions_v1
@@ -228,7 +252,6 @@ def get_data():
             tanggal = result['tanggal']
             waktu = result['waktu']
 
-    # Bangun query dinamis berdasarkan filter yang ada
     query = """
         SELECT tanggal, waktu, image, pred_class_1, pred_class_2, pred_class_3
         FROM chili_predictions_v1
@@ -255,7 +278,7 @@ def get_data():
         query += " AND pred_class_3 = %s"
         params.append(pred_class_3)
 
-    query += " ORDER BY waktu DESC LIMIT 30"
+    query += " ORDER BY waktu DESC LIMIT 55"
 
     cursor.execute(query, tuple(params))
     rows = cursor.fetchall()
@@ -269,7 +292,6 @@ def get_data():
         else:
             tanggal_str = str(row['tanggal'])
 
-        # Format waktu tergantung tipe
         waktu_raw = row['waktu']
         if isinstance(waktu_raw, timedelta):
             total_seconds = int(waktu_raw.total_seconds())
@@ -285,21 +307,13 @@ def get_data():
             waktu_str = str(waktu_raw)
             waktu_folder = waktu_str.replace(":", "-")
 
-        # Buat nama folder dan path gambar
-        jam_menit = waktu_folder[:5]  # "HH-MM"
-        jam, menit = map(int, jam_menit.split('-')) 
+        jam_menit = waktu_folder[:5]
+        jam, menit = map(int, jam_menit.split('-'))
 
-        prefixes = []
-        prefixes.append(f"{tanggal_str}_{jam:02}-{menit:02}")
-
-        if menit == 59:
-            jam_plus = (jam + 1) % 24
-            menit_plus = 0
-        else:
-            jam_plus = jam
-            menit_plus = menit + 1
-
-        prefixes.append(f"{tanggal_str}_{jam_plus:02}-{menit_plus:02}")
+        prefixes = [
+            f"{tanggal_str}_{jam:02}-{menit:02}",
+            f"{tanggal_str}_{(jam + (menit + 1) // 60) % 24:02}-{(menit + 1) % 60:02}"
+        ]
 
         image_filename = row['image']
 
@@ -307,11 +321,28 @@ def get_data():
                             if any(f.startswith(prefix) for prefix in prefixes)
                             and os.path.isdir(os.path.join(STORAGE_DIR, f))]
 
+        image_path = None
         if matching_folders:
             selected_folder = matching_folders[0]
-            image_path = os.path.join(STORAGE_DIR, selected_folder, image_filename)
-        else:
-            image_path = None
+
+            # Coba padukan nama image dengan ekstensi jika belum ada
+            image_full_path = None
+            if os.path.splitext(image_filename)[1]:  # Sudah ada ekstensi
+                image_full_path = os.path.join(STORAGE_DIR, selected_folder, image_filename)
+                if os.path.exists(image_full_path):
+                    image_path = image_full_path
+            else:
+                for ext in ['.jpg', '.jpeg', '.png']:
+                    possible_path = os.path.join(STORAGE_DIR, selected_folder, image_filename + ext)
+                    if os.path.exists(possible_path):
+                        image_path = possible_path
+                        image_filename += ext  # Update nama yang akan dikirim
+                        break
+
+        logging.debug(f"Checking for image: {image_filename}")
+        logging.debug(f"Trying folders: {prefixes}")
+        logging.debug(f"Matching folders found: {matching_folders}")
+        logging.debug(f"Final image_path: {image_path}")
 
         if image_path and os.path.exists(image_path):
             try:
@@ -493,18 +524,75 @@ def delete_directory_by_name():
 @app.route('/update-schedule', methods=['POST']) 
 def update_schedule():
     data = request.get_json()
+    return update_schedule_internal(data)
+
+def update_schedule_internal(data):
     run_now = data.get("run_now", False)
     data.pop("run_now", None)  # Hapus run_now sebelum disimpan
 
-    with open(SCHEDULE_FILE, 'w') as f:
-        json.dump(data, f, indent=4)
+    # Baca isi file yang lama
+    try:
+        with open(SCHEDULE_FILE, 'r') as f:
+            existing_data = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        existing_data = {}
 
+    # Update hanya bagian yang diberikan
+    for key, value in data.items():
+        existing_data[key] = value
+
+    # Simpan kembali ke file
+    with open(SCHEDULE_FILE, 'w') as f:
+        json.dump(existing_data, f, indent=4)
+
+    # Jalankan jika diminta
     message = "Schedule updated."
     if run_now:
         check_schedule_internal()
         message += " check_schedule() executed."
 
     return jsonify({"status": "success", "message": message})
+
+@app.route('/buffer-schedule', methods=['POST'])
+def generate_schedule():
+    req_data = request.get_json()
+    interval_hours = int(req_data.get("interval_hours"))
+    start_time_str = req_data.get("start_time")
+
+    try:
+        # Parsing waktu mulai dan tambahkan jeda 10 menit
+        time_format = "%H:%M"
+        base_time = datetime.strptime(start_time_str, time_format) + timedelta(minutes=10)
+
+        # Hitung waktu-waktu selama 24 jam penuh
+        times = []
+        current_time = base_time
+        while True:
+            times.append(current_time.strftime("%H:%M"))
+            current_time += timedelta(hours=interval_hours)
+            if (current_time - base_time).total_seconds() >= 86400:  # 24 jam
+                break
+
+        # Urutkan waktu secara kronologis
+        times.sort(key=lambda t: datetime.strptime(t, time_format))
+
+        # Siapkan payload
+        payload = {
+            "classify": {
+                "per_day": times,
+                "per_week": [],
+                "per_month": [],
+                "per_year": []
+            },
+            "run_now": True
+        }
+
+        # Panggil fungsi internal (tidak melalui HTTP)
+        response = update_schedule_internal(payload)
+        return response
+
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 400
 
 @app.route('/check-schedule', methods=['GET'])
 def check_schedule():
@@ -645,49 +733,62 @@ def filter_directories():
 @app.route('/get-full-image', methods=['POST'])
 def get_full_image():
     data = request.get_json(silent=True) or {}
-    tanggal = data.get("tanggal")  # format: "YY-MM-DD"
+    tanggal = data.get("tanggal")  # format: "YYYY-MM-DD"
     waktu = data.get("waktu")      # format: "HH:MM:SS"
+    image_name = data.get("image") # nama file gambar, misalnya "left_full.jpg"
 
+    if not image_name:
+        return jsonify({"error": "Image filename is required"}), 400
+
+    # Jika tanggal atau waktu kosong, cari folder terbaru
     if not tanggal or not waktu:
-        return jsonify({"error": "Missing 'tanggal' or 'waktu'"}), 400
+        folders = [
+            f for f in os.listdir(STORAGE_DIR)
+            if os.path.isdir(os.path.join(STORAGE_DIR, f))
+        ]
 
-    try:
-        target_dt = datetime.strptime(f"{tanggal} {waktu}", "%Y-%m-%d %H:%M:%S")
-    except ValueError:
-        return jsonify({"error": "Invalid date or time format"}), 400
+        folder_dates = []
+        for f in folders:
+            try:
+                dt = datetime.strptime(f, "%Y-%m-%d_%H-%M-%S")
+                folder_dates.append((dt, f))
+            except ValueError:
+                continue
 
-    # Buat nama folder target
-    target_folder_name = target_dt.strftime("%Y-%m-%d_%H-%M-%S")
+        if not folder_dates:
+            return jsonify({"error": "No valid folders found"}), 404
 
-    # Buat daftar nama folder yang dalam rentang ± 1 menit
-    toleransi = [target_dt + timedelta(seconds=offset) for offset in range(0, 61)]
-    toleransi_names = [dt.strftime("%Y-%m-%d_%H-%M-%S") for dt in toleransi]
+        folder_dates.sort(key=lambda x: x[0], reverse=True)
+        selected_folder = folder_dates[0][1]
+        dt_selected = folder_dates[0][0]
+        tanggal = dt_selected.strftime("%Y-%m-%d")
+        waktu = dt_selected.strftime("%H:%M:%S")
 
-    # Cek direktori yang sesuai
-    matching_folders = [
-        f for f in os.listdir(STORAGE_DIR)
-        if f in toleransi_names and os.path.isdir(os.path.join(STORAGE_DIR, f))
-    ]
+    else:
+        try:
+            dt_selected = datetime.strptime(f"{tanggal} {waktu}", "%Y-%m-%d %H:%M:%S")
+        except ValueError:
+            return jsonify({"error": "Invalid date or time format"}), 400
 
-    if not matching_folders:
-        return jsonify({"error": "No matching directory found"}), 404
+        target_folder_name = dt_selected.strftime("%Y-%m-%d_%H-%M-%S")
+        toleransi = [dt_selected + timedelta(seconds=offset) for offset in range(0, 61)]
+        toleransi_names = [dt.strftime("%Y-%m-%d_%H-%M-%S") for dt in toleransi]
 
-    # Gunakan folder pertama yang ditemukan
-    selected_folder = matching_folders[0]
+        matching_folders = [
+            f for f in os.listdir(STORAGE_DIR)
+            if f in toleransi_names and os.path.isdir(os.path.join(STORAGE_DIR, f))
+        ]
+
+        if not matching_folders:
+            return jsonify({"error": "No matching directory found"}), 404
+
+        selected_folder = matching_folders[0]
+
     folder_path = os.path.join(STORAGE_DIR, selected_folder)
-
-    # Cari gambar dengan nama mengandung "full"
-    full_images = [
-        f for f in os.listdir(folder_path)
-        if "full" in f.lower() and os.path.isfile(os.path.join(folder_path, f))
-    ]
-
-    if not full_images:
-        return jsonify({"error": "No image containing 'full' found"}), 404
-
-    # Ambil gambar pertama
-    image_name = full_images[0]
     image_path = os.path.join(folder_path, image_name)
+
+    if not os.path.exists(image_path):
+        return jsonify({"error": f"Image '{image_name}' not found in selected directory"}), 404
 
     try:
         with open(image_path, "rb") as img_file:
@@ -700,6 +801,8 @@ def get_full_image():
         return jsonify({"error": f"Failed to read image: {str(e)}"}), 500
 
     return jsonify({
+        "tanggal": tanggal,
+        "waktu": waktu,
         "image_name": image_name,
         "image_data": image_data
     })

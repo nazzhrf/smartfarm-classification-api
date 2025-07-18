@@ -1,0 +1,971 @@
+[
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "right_chili_15",
+        "top3": [
+            {
+                "class": "0",
+                "confidence": 0.9806
+            },
+            {
+                "class": "9",
+                "confidence": 0.0171
+            },
+            {
+                "class": "5",
+                "confidence": 0.0013
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "left_chili_6",
+        "top3": [
+            {
+                "class": "0",
+                "confidence": 0.9998
+            },
+            {
+                "class": "1",
+                "confidence": 0.0002
+            },
+            {
+                "class": "9",
+                "confidence": 0.0
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "right_chili_24",
+        "top3": [
+            {
+                "class": "1",
+                "confidence": 0.4075
+            },
+            {
+                "class": "0",
+                "confidence": 0.3483
+            },
+            {
+                "class": "5",
+                "confidence": 0.2439
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "right_chili_20",
+        "top3": [
+            {
+                "class": "0",
+                "confidence": 0.9997
+            },
+            {
+                "class": "5",
+                "confidence": 0.0001
+            },
+            {
+                "class": "1",
+                "confidence": 0.0001
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "right_chili_12",
+        "top3": [
+            {
+                "class": "7",
+                "confidence": 0.5625
+            },
+            {
+                "class": "0",
+                "confidence": 0.3996
+            },
+            {
+                "class": "1",
+                "confidence": 0.0153
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "left_chili_5",
+        "top3": [
+            {
+                "class": "0",
+                "confidence": 0.9998
+            },
+            {
+                "class": "9",
+                "confidence": 0.0001
+            },
+            {
+                "class": "3",
+                "confidence": 0.0001
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "left_chili_3",
+        "top3": [
+            {
+                "class": "0",
+                "confidence": 0.9102
+            },
+            {
+                "class": "5",
+                "confidence": 0.0845
+            },
+            {
+                "class": "1",
+                "confidence": 0.0047
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "left_chili_10",
+        "top3": [
+            {
+                "class": "0",
+                "confidence": 0.9604
+            },
+            {
+                "class": "5",
+                "confidence": 0.0305
+            },
+            {
+                "class": "1",
+                "confidence": 0.0058
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "left_chili_25",
+        "top3": [
+            {
+                "class": "0",
+                "confidence": 0.9983
+            },
+            {
+                "class": "9",
+                "confidence": 0.0011
+            },
+            {
+                "class": "5",
+                "confidence": 0.0003
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "left_chili_2",
+        "top3": [
+            {
+                "class": "1",
+                "confidence": 1.0
+            },
+            {
+                "class": "0",
+                "confidence": 0.0
+            },
+            {
+                "class": "5",
+                "confidence": 0.0
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "right_chili_13",
+        "top3": [
+            {
+                "class": "0",
+                "confidence": 0.9993
+            },
+            {
+                "class": "1",
+                "confidence": 0.0003
+            },
+            {
+                "class": "5",
+                "confidence": 0.0002
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "right_chili_25",
+        "top3": [
+            {
+                "class": "0",
+                "confidence": 0.9811
+            },
+            {
+                "class": "5",
+                "confidence": 0.016
+            },
+            {
+                "class": "1",
+                "confidence": 0.0028
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "left_chili_11",
+        "top3": [
+            {
+                "class": "0",
+                "confidence": 0.9979
+            },
+            {
+                "class": "1",
+                "confidence": 0.0015
+            },
+            {
+                "class": "5",
+                "confidence": 0.0004
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "right_chili_21",
+        "top3": [
+            {
+                "class": "0",
+                "confidence": 0.9998
+            },
+            {
+                "class": "5",
+                "confidence": 0.0002
+            },
+            {
+                "class": "1",
+                "confidence": 0.0
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "right_chili_11",
+        "top3": [
+            {
+                "class": "0",
+                "confidence": 0.5017
+            },
+            {
+                "class": "7",
+                "confidence": 0.486
+            },
+            {
+                "class": "5",
+                "confidence": 0.0102
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "left_chili_22",
+        "top3": [
+            {
+                "class": "0",
+                "confidence": 0.9999
+            },
+            {
+                "class": "1",
+                "confidence": 0.0001
+            },
+            {
+                "class": "9",
+                "confidence": 0.0
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "right_chili_10",
+        "top3": [
+            {
+                "class": "0",
+                "confidence": 0.9606
+            },
+            {
+                "class": "5",
+                "confidence": 0.0335
+            },
+            {
+                "class": "1",
+                "confidence": 0.0034
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "right_chili_14",
+        "top3": [
+            {
+                "class": "5",
+                "confidence": 0.4251
+            },
+            {
+                "class": "7",
+                "confidence": 0.2921
+            },
+            {
+                "class": "0",
+                "confidence": 0.266
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "right_chili_6",
+        "top3": [
+            {
+                "class": "5",
+                "confidence": 0.8389
+            },
+            {
+                "class": "7",
+                "confidence": 0.1282
+            },
+            {
+                "class": "0",
+                "confidence": 0.0173
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "right_chili_23",
+        "top3": [
+            {
+                "class": "0",
+                "confidence": 0.9822
+            },
+            {
+                "class": "1",
+                "confidence": 0.012
+            },
+            {
+                "class": "5",
+                "confidence": 0.0037
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "right_chili_16",
+        "top3": [
+            {
+                "class": "0",
+                "confidence": 0.9778
+            },
+            {
+                "class": "7",
+                "confidence": 0.0113
+            },
+            {
+                "class": "1",
+                "confidence": 0.0047
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "right_chili_17",
+        "top3": [
+            {
+                "class": "1",
+                "confidence": 0.6486
+            },
+            {
+                "class": "0",
+                "confidence": 0.2072
+            },
+            {
+                "class": "5",
+                "confidence": 0.0927
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "left_chili_16",
+        "top3": [
+            {
+                "class": "0",
+                "confidence": 1.0
+            },
+            {
+                "class": "9",
+                "confidence": 0.0
+            },
+            {
+                "class": "1",
+                "confidence": 0.0
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "left_chili_21",
+        "top3": [
+            {
+                "class": "0",
+                "confidence": 0.9999
+            },
+            {
+                "class": "1",
+                "confidence": 0.0001
+            },
+            {
+                "class": "5",
+                "confidence": 0.0
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "left_chili_12",
+        "top3": [
+            {
+                "class": "0",
+                "confidence": 1.0
+            },
+            {
+                "class": "1",
+                "confidence": 0.0
+            },
+            {
+                "class": "9",
+                "confidence": 0.0
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "left_chili_7",
+        "top3": [
+            {
+                "class": "0",
+                "confidence": 1.0
+            },
+            {
+                "class": "1",
+                "confidence": 0.0
+            },
+            {
+                "class": "3",
+                "confidence": 0.0
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "right_chili_8",
+        "top3": [
+            {
+                "class": "0",
+                "confidence": 0.9322
+            },
+            {
+                "class": "7",
+                "confidence": 0.0573
+            },
+            {
+                "class": "5",
+                "confidence": 0.0056
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "left_chili_8",
+        "top3": [
+            {
+                "class": "0",
+                "confidence": 0.9999
+            },
+            {
+                "class": "1",
+                "confidence": 0.0001
+            },
+            {
+                "class": "5",
+                "confidence": 0.0
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "right_chili_7",
+        "top3": [
+            {
+                "class": "7",
+                "confidence": 0.5521
+            },
+            {
+                "class": "0",
+                "confidence": 0.3673
+            },
+            {
+                "class": "5",
+                "confidence": 0.0519
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "left_chili_1",
+        "top3": [
+            {
+                "class": "0",
+                "confidence": 0.718
+            },
+            {
+                "class": "1",
+                "confidence": 0.2133
+            },
+            {
+                "class": "5",
+                "confidence": 0.0658
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "left_chili_18",
+        "top3": [
+            {
+                "class": "0",
+                "confidence": 0.999
+            },
+            {
+                "class": "5",
+                "confidence": 0.0005
+            },
+            {
+                "class": "3",
+                "confidence": 0.0003
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "right_chili_4",
+        "top3": [
+            {
+                "class": "5",
+                "confidence": 0.5501
+            },
+            {
+                "class": "0",
+                "confidence": 0.2747
+            },
+            {
+                "class": "1",
+                "confidence": 0.1457
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "right_chili_5",
+        "top3": [
+            {
+                "class": "0",
+                "confidence": 0.7816
+            },
+            {
+                "class": "5",
+                "confidence": 0.1766
+            },
+            {
+                "class": "1",
+                "confidence": 0.0372
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "left_chili_23",
+        "top3": [
+            {
+                "class": "0",
+                "confidence": 0.724
+            },
+            {
+                "class": "9",
+                "confidence": 0.1057
+            },
+            {
+                "class": "7",
+                "confidence": 0.0569
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "left_chili_17",
+        "top3": [
+            {
+                "class": "0",
+                "confidence": 0.9998
+            },
+            {
+                "class": "5",
+                "confidence": 0.0001
+            },
+            {
+                "class": "9",
+                "confidence": 0.0
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "left_chili_9",
+        "top3": [
+            {
+                "class": "0",
+                "confidence": 1.0
+            },
+            {
+                "class": "9",
+                "confidence": 0.0
+            },
+            {
+                "class": "5",
+                "confidence": 0.0
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "right_chili_1",
+        "top3": [
+            {
+                "class": "0",
+                "confidence": 0.7958
+            },
+            {
+                "class": "7",
+                "confidence": 0.1477
+            },
+            {
+                "class": "1",
+                "confidence": 0.052
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "right_chili_22",
+        "top3": [
+            {
+                "class": "5",
+                "confidence": 0.6037
+            },
+            {
+                "class": "0",
+                "confidence": 0.2606
+            },
+            {
+                "class": "1",
+                "confidence": 0.1329
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "left_chili_13",
+        "top3": [
+            {
+                "class": "0",
+                "confidence": 0.9939
+            },
+            {
+                "class": "1",
+                "confidence": 0.0049
+            },
+            {
+                "class": "5",
+                "confidence": 0.0007
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "left_chili_24",
+        "top3": [
+            {
+                "class": "0",
+                "confidence": 0.9992
+            },
+            {
+                "class": "1",
+                "confidence": 0.0005
+            },
+            {
+                "class": "3",
+                "confidence": 0.0001
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "right_chili_3",
+        "top3": [
+            {
+                "class": "5",
+                "confidence": 0.4705
+            },
+            {
+                "class": "1",
+                "confidence": 0.4002
+            },
+            {
+                "class": "7",
+                "confidence": 0.0579
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "left_chili_19",
+        "top3": [
+            {
+                "class": "0",
+                "confidence": 0.9974
+            },
+            {
+                "class": "3",
+                "confidence": 0.0012
+            },
+            {
+                "class": "1",
+                "confidence": 0.0007
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "left_chili_14",
+        "top3": [
+            {
+                "class": "0",
+                "confidence": 0.9961
+            },
+            {
+                "class": "3",
+                "confidence": 0.0032
+            },
+            {
+                "class": "1",
+                "confidence": 0.0005
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "left_chili_26",
+        "top3": [
+            {
+                "class": "0",
+                "confidence": 1.0
+            },
+            {
+                "class": "9",
+                "confidence": 0.0
+            },
+            {
+                "class": "3",
+                "confidence": 0.0
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "left_chili_4",
+        "top3": [
+            {
+                "class": "0",
+                "confidence": 0.9842
+            },
+            {
+                "class": "9",
+                "confidence": 0.0073
+            },
+            {
+                "class": "5",
+                "confidence": 0.007
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "right_chili_2",
+        "top3": [
+            {
+                "class": "7",
+                "confidence": 1.0
+            },
+            {
+                "class": "5",
+                "confidence": 0.0
+            },
+            {
+                "class": "1",
+                "confidence": 0.0
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "left_chili_15",
+        "top3": [
+            {
+                "class": "3",
+                "confidence": 0.9983
+            },
+            {
+                "class": "0",
+                "confidence": 0.0016
+            },
+            {
+                "class": "5",
+                "confidence": 0.0
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "right_chili_9",
+        "top3": [
+            {
+                "class": "5",
+                "confidence": 0.997
+            },
+            {
+                "class": "1",
+                "confidence": 0.0024
+            },
+            {
+                "class": "7",
+                "confidence": 0.0003
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "right_chili_19",
+        "top3": [
+            {
+                "class": "0",
+                "confidence": 0.7093
+            },
+            {
+                "class": "1",
+                "confidence": 0.0923
+            },
+            {
+                "class": "5",
+                "confidence": 0.0922
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "right_chili_18",
+        "top3": [
+            {
+                "class": "1",
+                "confidence": 0.4304
+            },
+            {
+                "class": "0",
+                "confidence": 0.3642
+            },
+            {
+                "class": "7",
+                "confidence": 0.1798
+            }
+        ]
+    },
+    {
+        "tanggal": "2025-06-23",
+        "waktu": "22:44:14",
+        "image": "left_chili_20",
+        "top3": [
+            {
+                "class": "0",
+                "confidence": 0.999
+            },
+            {
+                "class": "5",
+                "confidence": 0.0006
+            },
+            {
+                "class": "3",
+                "confidence": 0.0003
+            }
+        ]
+    }
+]
